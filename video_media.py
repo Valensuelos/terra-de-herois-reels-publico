@@ -66,25 +66,34 @@ def extract_photo(source, target='source-poster.jpg'):
     return img
 
 def make_overlay(frame='frame.png', target='overlay.png'):
+    """Preserva o cabeçalho e os painéis; abre janela para vídeo em movimento."""
     im = Image.open(frame).convert('RGBA')
     if im.size != (WIDTH, HEIGHT):
         raise ValueError('A arte precisa ter 1080 x 1920 pixels.')
     dr = ImageDraw.Draw(im)
     dr.rectangle((0, VIDEO_TOP, WIDTH, VIDEO_BOTTOM), fill=(0, 0, 0, 0))
-    for y in range(966, VIDEO_BOTTOM+1, 3):
-        a = min(220, int(220*((y-966)/(VIDEO_BOTTOM-966))**1.45))
-        dr.rectangle((0, y, WIDTH, min(VIDEO_BOTTOM, y+2)), fill=(2, 13, 45, a))
-    dr.polygon([(20, 1077), (513, 1077), (487, 1150), (5, 1150)], fill='#061435')
-    dr.polygon([(25, 1072), (509, 1072), (483, 1148), (3, 1148)], fill='#ffd91e')
+    # Recoloca a divisão curva do cabeçalho por cima do vídeo.
+    dr.polygon([(0,399),(0,445),(160,420),(510,439),(820,433),
+                (1080,397),(1080,384),(0,384)], fill='#082764')
+    dr.line([(0,420),(260,428),(540,438),(850,429),(1080,410)],
+            fill='#00dafa', width=7, joint='curve')
+    # Transição da área de vídeo para o selo editorial.
+    for y in range(973, VIDEO_BOTTOM + 1, 2):
+        a = min(230, int(230*((y-973)/(VIDEO_BOTTOM-973))**1.65))
+        dr.rectangle((0, y, WIDTH, min(VIDEO_BOTTOM, y+1)),
+                     fill=(1,12,42,a))
+    dr.polygon([(20,1077),(513,1077),(487,1159),(5,1159)], fill='#061435')
+    dr.polygon([(25,1072),(509,1072),(483,1148),(3,1148)], fill='#ffd91e')
     try:
         ft = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-BoldOblique.ttf', 47)
     except OSError:
         ft = ImageFont.truetype('DejaVuSans-Bold.ttf', 47)
-    dr.text((44, 1090), 'ÚLTIMAS NOTÍCIAS', font=ft, fill='#041b47', stroke_width=1)
-    for x in (522, 564, 606):
-        dr.polygon([(x, 1088), (x+24, 1088), (x-4, 1140), (x-28, 1140)], fill='#04e6f5')
+    dr.text((44,1090), 'ÚLTIMAS NOTÍCIAS', font=ft, fill='#041b47', stroke_width=1)
+    for x in (522,564,606):
+        dr.polygon([(x,1088),(x+24,1088),(x-4,1140),(x-28,1140)], fill='#04e6f5')
     im.save(target)
     return target
+
 
 def render_video(source='source.mp4', frame='frame.png', target='reel.mp4',
                  seconds=28, music=True):
