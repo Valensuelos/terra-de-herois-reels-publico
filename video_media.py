@@ -115,6 +115,8 @@ def render_video(source='source.mp4', frame='frame.png', target='reel.mp4',
     graph = (
         f'[0:v]scale={WIDTH}:{VIDEO_BOTTOM-VIDEO_TOP}:force_original_aspect_ratio=increase,'
         f'crop={WIDTH}:{VIDEO_BOTTOM-VIDEO_TOP},setsar=1,'
+        'eq=contrast=1.08:brightness=0.012:saturation=1.11,'
+        'unsharp=5:5:0.45:3:3:0.0,'
         f'pad={WIDTH}:{HEIGHT}:0:{VIDEO_TOP}:color=black,format=rgba[base];'
         '[1:v]format=rgba[ui];'
         '[base][ui]overlay=0:0:format=auto:shortest=1,format=yuv420p[outv]'
@@ -122,7 +124,7 @@ def render_video(source='source.mp4', frame='frame.png', target='reel.mp4',
     args = ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y'] + inputs + [
         '-filter_complex', graph, '-map', '[outv]', '-map', audio_map,
         '-t', str(round(duration, 2)), '-r', '20', '-c:v', 'libx264',
-        '-preset', 'veryfast', '-crf', '25', '-pix_fmt', 'yuv420p',
+        '-preset', 'fast', '-crf', '21', '-pix_fmt', 'yuv420p',
         '-c:a', 'aac', '-b:a', '128k', '-ar', '44100', '-ac', '2',
         '-movflags', '+faststart', '-shortest', target,
     ]
