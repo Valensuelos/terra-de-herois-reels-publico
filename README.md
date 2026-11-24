@@ -81,3 +81,25 @@ Teste local:
 \`\`\`bash
 python3 -m unittest discover -s tests -v
 \`\`\`
+
+
+## Versão visual oficial 1.2.3 — layout fixo e logo branca/azul
+
+O AutoNews Reels para WordPress v1.2.3 inclui duas mídias no próprio plugin:
+`assets/terra-logo-oficial.webp` e `assets/moldura-reels-oficial.webp`.
+A API do WordPress envia `template_url` e `logo_url` no manifesto do Reels.
+
+O compositor `approved_skin.py` prioriza essa **moldura gráfica oficial**, em vez
+do layout de fallback gerado somente com formas. Como a moldura tem a imagem
+central e os textos jornalísticos transparentes/vazios, o renderizador insere
+a fotografia da notícia, a manchete e o resumo dinamicamente. A logo é a
+imagem oficial branca/azul sem quadrado, preservada no topo.
+
+O modelo de fallback ainda existe para uma instalação WordPress antiga sem
+`template_url`. A substituição do plugin WordPress pela versão 1.2.3 é
+necessária para a moldura oficial; somente atualizar o GitHub não altera
+a logo antiga previamente configurada.
+
+**Teste:** manter publicação automática desativada; gerar um novo Reels após
+instalar o plugin 1.2.3; conferir o MP4 no painel antes de publicar.
+Jobs anteriores com status PRONTO não mudam retroativamente.
