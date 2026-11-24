@@ -25,7 +25,7 @@ def draw_logo(bg,logo):
     bounds=logo.getchannel('A').getbbox()
     if bounds:
         logo=logo.crop(bounds)
-    logo.thumbnail((650,353),Image.Resampling.LANCZOS)
+    logo.thumbnail((760,365),Image.Resampling.LANCZOS)
     bg.alpha_composite(logo,((WIDTH-logo.width)//2,31+(341-logo.height)//2))
 
 def lettered(bg,point,text,ft,color,shadow=(4,7),outline=2):
@@ -98,11 +98,11 @@ def make_news_frame(meta,path,photo,logo,image_from_url,safe_text,
     lines=[]
     ff=bold_font(42,True)
     lh=49
-    for size in range(78,41,-2):
+    for size in range(110,41,-2):
         tf=bold_font(size,True)
         rows=wrapped_lines(d,title,tf,958,4)
         line_height=round(size*1.15)
-        if len(rows)*line_height<=268:
+        if len(rows)*line_height<=280:
             ff,lines,lh=tf,rows,line_height
             break
     if not lines:
