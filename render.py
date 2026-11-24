@@ -155,8 +155,8 @@ def render_mp4(frame='frame.png', path='reel.mp4', seconds=28):
                        'anullsrc=channel_layout=stereo:sample_rate=44100']
     args = ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
             '-loop', '1', '-framerate', '20', '-i', frame] + audio_input + [
-            '-t', str(duration), '-c:v', 'libx264', '-preset', 'veryfast',
-            '-crf', '26', '-pix_fmt', 'yuv420p', '-r', '20', '-c:a', 'aac',
+            '-t', str(duration), '-c:v', 'libx264', '-preset', 'fast',
+            '-crf', '20', '-pix_fmt', 'yuv420p', '-r', '20', '-c:a', 'aac',
             '-b:a', '112k', '-ar', '44100', '-ac', '2',
             '-movflags', '+faststart', '-shortest', path]
     subprocess.run(args, check=True, timeout=600)
