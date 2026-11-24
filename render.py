@@ -85,7 +85,12 @@ def image_from_url(url):
 
 def font(size, bold=False):
     filename = 'DejaVuSans-Bold.ttf' if bold else 'DejaVuSans.ttf'
-    return ImageFont.truetype('/usr/share/fonts/truetype/dejavu/' + filename, size)
+    for candidate in ('/usr/share/fonts/truetype/dejavu/' + filename, filename):
+        try:
+            return ImageFont.truetype(candidate, size)
+        except OSError:
+            pass
+    return ImageFont.load_default(size=size)
 
 
 def safe_text(value, max_len=1000):
