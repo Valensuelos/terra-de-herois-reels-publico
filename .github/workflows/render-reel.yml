@@ -1,0 +1,40 @@
+name: Terra de Heróis - Renderizar Reels
+run-name: 'Reels #${{ inputs.job_id }}'
+
+# Somente disparo manual/autenticado. Nunca acrescentar gatilhos
+# de PR, push ou workflow_run com acesso aos segredos.
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: 'ID do Reels no WordPress'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: 'terra-reels-${{ inputs.job_id }}'
+  cancel-in-progress: false
+
+jobs:
+  render:
+    name: Gerar MP4 e devolver ao WordPress
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Obter renderizador
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Preparar FFmpeg e Pillow
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg python3-pil fonts-dejavu-core
+      - name: Gerar e enviar MP4
+        env:
+          ANR_SITE_URL: ${{ secrets.ANR_SITE_URL }}
+          ANR_SHARED_SECRET: ${{ secrets.ANR_SHARED_SECRET }}
+          ANR_JOB_ID: ${{ inputs.job_id }}
+        run: /usr/bin/python3 render.py
