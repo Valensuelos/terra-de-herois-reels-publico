@@ -1,8 +1,7 @@
 name: Terra de Heróis - Renderizar Reels
 run-name: 'Reels #${{ inputs.job_id }}'
 
-# Somente disparo manual/autenticado. Nunca acrescentar gatilhos
-# de PR, push ou workflow_run com acesso aos segredos.
+# Exclusivamente disparo autenticado. Secrets nunca são usados por PR/push.
 on:
   workflow_dispatch:
     inputs:
@@ -25,17 +24,49 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Obter renderizador
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Preparar FFmpeg e Pillow
+
+      - name: Configurar Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Preparar FFmpeg e Pillow (sem apt-get)
+        timeout-minutes: 4
+        shell: bash
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg python3-pil fonts-dejavu-core
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --only-binary=:all: \
+            --retries 2 --timeout 20 Pillow==12.0.0 imageio-ffmpeg==0.6.0
+          mkdir -p "$RUNNER_TEMP/bin"
+          python - <<'PY'
+          import imageio_ffmpeg
+          import os
+          from pathlib import Path
+          ffmpeg = Path(imageio_ffmpeg.get_ffmpeg_exe()).resolve()
+          target = Path(os.environ['RUNNER_TEMP']) / 'bin' / 'ffmpeg'
+          target.symlink_to(ffmpeg)
+          print("FFmpeg pronto:", ffmpeg.name)
+          PY
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Verificar dependências e testes locais
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -c "from PIL import Image; import imageio_ffmpeg; print('Pillow e FFmpeg disponíveis')"
+          ffmpeg -hide_banner -encoders | grep -q 'libx264'
+          ffmpeg -hide_banner -filters | grep -q 'unsharp'
+          python -m unittest discover -s tests -v
+
       - name: Gerar e enviar MP4
+        timeout-minutes: 8
         env:
           ANR_SITE_URL: ${{ secrets.ANR_SITE_URL }}
           ANR_SHARED_SECRET: ${{ secrets.ANR_SHARED_SECRET }}
           ANR_JOB_ID: ${{ inputs.job_id }}
           ANR_MUSIC_ENABLED: ${{ vars.ANR_MUSIC_ENABLED || 'true' }}
-        run: /usr/bin/python3 render.py
+        run: python render.py
