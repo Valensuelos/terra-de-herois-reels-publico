@@ -66,7 +66,7 @@ def make_music(seconds, filename='breaking-news.wav'):
                            0.28*math.sin(TWO_PI*f0*1.998*delta)))
         fade_in = min(1.0, t/0.08)
         fade_out = min(1.0, max(0.0, (seconds-t)/1.25))
-        amplitude = (pad+low+pluck+kick+hat+intro)*fade_in*fade_out
+        amplitude = 2.2*(pad+low+pluck+kick+hat+intro)*fade_in*fade_out
         pcm.append(max(-32767, min(32767, int(amplitude*32767))))
     with wave.open(filename, 'wb') as out:
         out.setnchannels(1)
