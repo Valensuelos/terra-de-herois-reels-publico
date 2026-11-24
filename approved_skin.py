@@ -43,21 +43,72 @@ def _wrap(draw, text, ft, maxw, maxlines):
         lines[-1] = tail.rstrip() + '…'
     return lines
 
-def _draw_site_address(draw, rect):
-    """Centraliza os pixels reais do texto, incluindo contorno, com margens."""
-    text = 'terradeherois.com.br'
-    left, top, right, bottom = rect
-    for size in range(46, 11, -1):
-        ft = font(size, True)
-        x0, y0, x1, y1 = draw.textbbox((0, 0), text, font=ft, stroke_width=1)
-        width, height = x1-x0, y1-y0
-        if width <= right-left-32 and height <= bottom-top-12:
-            x = left + (right-left-width)//2 - x0
-            y = top + (bottom-top-height)//2 - y0
-            draw.text((x, y), text, font=ft, fill='#ffe329',
-                      stroke_fill='#071533', stroke_width=1)
-            return
-    raise ValueError('Endereço não cabe no balão da moldura.')
+def _summary_lines(draw, text, ft, max_width):
+    """Quebra palavras e tokens excepcionalmente longos sem sair do painel."""
+    def fits(value):
+        x0, _, x1, _ = draw.textbbox((0, 0), value, font=ft, stroke_width=1)
+        return x1-x0 <= max_width
+    rows, line = [], ''
+    for word in str(text).split():
+        candidate = (line + ' ' + word).strip()
+        if fits(candidate):
+            line = candidate
+            continue
+        if line:
+            rows.append(line)
+        while word and not fits(word):
+            end = len(word)-1
+            while end > 1 and not fits(word[:end]):
+                end -= 1
+            rows.append(word[:end])
+            word = word[end:]
+        line = word
+    if line:
+        rows.append(line)
+    return rows
+
+
+def _draw_summary(draw, summary):
+    """Usa toda a altura do painel, com até quatro linhas e respiro."""
+    left, top, right, bottom = 262, 1509, 1054, 1719
+    gap = 7
+
+    def boxes_for(rows, ft):
+        return [draw.textbbox((0, 0), row, font=ft, stroke_width=1)
+                for row in rows]
+
+    def height(boxes):
+        return sum(y1-y0 for _, y0, _, y1 in boxes) + gap*max(0, len(boxes)-1)
+
+    for size in range(56, 39, -1):
+        ft = font(size, False)
+        rows = _summary_lines(draw, summary, ft, right-left)
+        boxes = boxes_for(rows, ft)
+        if len(rows) <= 4 and height(boxes) <= bottom-top:
+            break
+    else:
+        # Prioriza leitura: mantém quatro linhas e sinaliza texto excedente.
+        rows = rows[:4]
+        while rows:
+            tail = rows[-1]
+            while tail:
+                x0, _, x1, _ = draw.textbbox((0, 0), tail+'…',
+                                             font=ft, stroke_width=1)
+                if x1-x0 <= right-left:
+                    break
+                tail = tail[:-1]
+            rows[-1] = tail.rstrip()+'…'
+            boxes = boxes_for(rows, ft)
+            if height(boxes) <= bottom-top:
+                break
+            rows.pop()
+
+    y = top + (bottom-top-height(boxes))//2
+    for row, (x0, y0, x1, y1) in zip(rows, boxes):
+        draw.text((left-x0, y-y0), row, font=ft, fill='#ffffff',
+                  stroke_fill='#061636', stroke_width=1)
+        y += y1-y0+gap
+    return rows
 
 
 def make_official_frame(meta, path, photo, image_from_url, safe_text):
@@ -109,26 +160,8 @@ def make_official_frame(meta, path, photo, image_from_url, safe_text):
         dr.text((x, y), line, font=title_font, fill=color,
                 stroke_width=2, stroke_fill='#133263')
 
-    # Resumo: melhor leitura em tela pequena, até três linhas com respiro.
-    # Prefere preservar o texto inteiro quando cabe; caso contrário usa reticências.
-    summary_font = font(45, False)
-    for size in range(56, 47, -2):
-        candidate_font = font(size, False)
-        if len(_wrap(dr, summary, candidate_font, 792, 99)) <= 3:
-            summary_font = candidate_font
-            break
-    summary_rows = _wrap(dr, summary, summary_font, 798, 3)
-    # Painel de 1497 a 1731: texto legível e assinatura acima dos controles.
-    summary_y = 1507
-    line_spacing = 52
-    for i, line in enumerate(summary_rows):
-        dr.text((262, summary_y + i*line_spacing), line, font=summary_font,
-                fill='#ffffff', stroke_fill='#061636', stroke_width=1)
-
-    # Endereço maior e afastado do resumo, sem disputar espaço com o CTA.
-    dr.rounded_rectangle((262, 1677, 815, 1724), radius=13,
-                         fill='#052451', outline='#0fcce8', width=2)
-    _draw_site_address(dr, (262, 1677, 815, 1724))
+    # Sem endereço duplicado: o rodapé oficial já contém a URL do portal.
+    _draw_summary(dr, summary)
     # O CTA original da moldura permanece intacto, sem contorno duplicado.
     base.convert('RGB').save(path,optimize=True)
     return True
