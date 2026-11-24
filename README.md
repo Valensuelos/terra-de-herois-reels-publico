@@ -42,3 +42,42 @@ python3 -m unittest discover -s tests -v
 ```
 
 **Limitações:** layout simplificado, sem narração por IA nem logotipos de patrocinadores; para reproduzir exatamente o layout editorial definitivo do portal, é necessário desenvolver o template gráfico específico. Uma falha de execução não é reenviada automaticamente por este repositório; ela aparece no GitHub Actions e o WordPress mantém seu histórico.
+
+
+## Atualização visual e música — Novembro de 2026
+
+O renderizador agora usa um novo layout editorial vertical:
+- Logo transparente na parte superior sem quadrado de fundo;
+- Imagem destacada ocupando o painel fotográfico central;
+- Faixa amarela "ÚLTIMAS NOTÍCIAS";
+- Manchete em branco/amarelo com ajuste de fonte;
+- Resumo curto e CTA "LEIA A MATÉRIA COMPLETA" no rodapé.
+
+### Como usar a nova logo enviada pelo usuário
+No **WordPress > AutoNews Reels > 2. Identidade visual e vídeo**,
+clique em **Selecionar logo da Biblioteca**, envie a PNG oficial transparente
+(TERRA em dourado e DE HERÓIS em azul), selecione-a e salve.
+A imagem é acessada pelo GitHub através do campo \`logo_url\`.
+**O repositório público não armazena essa marca nem fotos de matérias.**
+Se a logo continuar quadrada, a mídia antiga ainda está selecionada.
+
+### Trilha Breaking News original
+\`soundtrack.py\` gera uma composição instrumental sintetizada: abertura
+de três notas marcantes, pulso rítmico discreto, e fade-out.
+Não reutiliza músicas, trechos ou amostras comerciais.
+
+A música fica **ativada por padrão**, sem precisar mudar nada no WordPress.
+Para desligar, crie em GitHub > Settings > Secrets and variables > Actions >
+**Variables** a variável \`ANR_MUSIC_ENABLED\` com o valor \`false\`.
+Para religar, altere para \`true\` ou remova a variável.
+
+Não ative a publicação automática no Instagram sem antes conferir no WordPress
+o vídeo da primeira execução, o volume da música e a leitura da manchete.
+As imagens das notícias devem ter autorização de uso. O vídeo usa foto fixa
+(com sobreposição gráfica) e uma trilha sem narração. A prévia ilustrativa
+não é uma filmagem de uma repórter real.
+
+Teste local:
+\`\`\`bash
+python3 -m unittest discover -s tests -v
+\`\`\`
