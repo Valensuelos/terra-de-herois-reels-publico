@@ -13,8 +13,16 @@ TWO_PI = 2.0 * math.pi
 
 
 def make_music(seconds, filename='breaking-news.wav'):
-    """Gera WAV PCM mono 16 bits usado pelo FFmpeg."""
-    seconds = max(20, min(45, int(seconds)))
+    """Usa trilha privada quando configurada, ou síntese original de reserva."""
+    from licensed_music import prepare_music
+    try:
+        if prepare_music(seconds, filename):
+            print('Trilha editorial privada selecionada.')
+            return filename
+    except Exception:
+        # Nunca registrar URL, credenciais ou conteúdo de respostas.
+        print('Trilha privada indisponível; usando trilha original de reserva.')
+    seconds = max(20, min(45, math.ceil(float(seconds))))
     beat = 60.0 / 100
     eighth = beat / 2
     # Harmonia e motivo próprios: Dadd9, Bm7, Gmaj7, Asus4.

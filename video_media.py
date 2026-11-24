@@ -137,7 +137,7 @@ def render_video(source='source.mp4', frame='frame.png', target='reel.mp4',
     else:
         if music:
             from soundtrack import make_music
-            inputs += ['-i', make_music(int(max(20, duration)))]
+            inputs += ['-i', make_music(duration)]
         else:
             inputs += ['-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100']
         audio_map = '2:a:0'
