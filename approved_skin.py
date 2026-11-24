@@ -13,10 +13,13 @@ PHOTO_TOP, PHOTO_BOTTOM = 410, 1147
 
 def font(size, oblique=True):
     name = 'DejaVuSansCondensed-BoldOblique.ttf' if oblique else 'DejaVuSansCondensed-Bold.ttf'
-    try:
-        return ImageFont.truetype('/usr/share/fonts/truetype/dejavu/' + name, size)
-    except OSError:
-        return ImageFont.truetype('DejaVuSans-Bold.ttf', size)
+    for candidate in ('/usr/share/fonts/truetype/dejavu/' + name,
+                      name, 'DejaVuSans-Bold.ttf'):
+        try:
+            return ImageFont.truetype(candidate, size)
+        except OSError:
+            pass
+    return ImageFont.load_default(size=size)
 
 def _wrap(draw, text, ft, maxw, maxlines):
     """Quebra linhas sem cortar palavra e sinaliza truncamento."""
