@@ -13,15 +13,15 @@ TWO_PI = 2.0 * math.pi
 
 
 def make_music(seconds, filename='breaking-news.wav'):
-    """Usa trilha privada quando configurada, ou síntese original de reserva."""
+    """Usa trilha do portal quando configurada, ou síntese original de reserva."""
     from licensed_music import prepare_music
     try:
         if prepare_music(seconds, filename):
-            print('Trilha editorial privada selecionada.')
+            print('Trilha editorial do portal selecionada.')
             return filename
     except Exception:
         # Nunca registrar URL, credenciais ou conteúdo de respostas.
-        print('Trilha privada indisponível; usando trilha original de reserva.')
+        print('Trilha do portal indisponível; usando trilha original de reserva.')
     seconds = max(20, min(45, math.ceil(float(seconds))))
     beat = 60.0 / 100
     eighth = beat / 2

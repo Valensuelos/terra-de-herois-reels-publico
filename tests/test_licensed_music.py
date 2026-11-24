@@ -23,3 +23,12 @@ class LicensedMusicTest(unittest.TestCase):
                 _request(url, 'user:pass')
         with self.assertRaises(ValueError):
             _request('https://terradeherois.com.br/private/shield.mp3', '')
+
+    def test_public_m4a_from_portal(self):
+        req = _request('https://terradeherois.com.br/wp-content/uploads/2026/11/music.m4a', '')
+        self.assertIsNone(req.get_header('Authorization'))
+        for url in ('https://other.example/wp-content/uploads/music.m4a',
+                    'https://terradeherois.com.br/wp-content/uploads/../music.m4a',
+                    'https://terradeherois.com.br/wp-content/uploads/music.exe'):
+            with self.assertRaises(ValueError):
+                _request(url, '')

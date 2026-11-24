@@ -69,6 +69,6 @@ jobs:
           ANR_SHARED_SECRET: ${{ secrets.ANR_SHARED_SECRET }}
           ANR_JOB_ID: ${{ inputs.job_id }}
           ANR_MUSIC_ENABLED: ${{ vars.ANR_MUSIC_ENABLED || 'true' }}
-          ANR_SOUNDTRACK_URL: ${{ secrets.ANR_SOUNDTRACK_URL }}
-          ANR_SOUNDTRACK_AUTH: ${{ secrets.ANR_SOUNDTRACK_AUTH }}
+          ANR_SOUNDTRACK_URL: ${{ secrets.ANR_SOUNDTRACK_URL || 'https://terradeherois.com.br/wp-content/uploads/2026/11/ShieldM4A_128K.m4a' }}
+          ANR_SOUNDTRACK_AUTH: ${{ secrets.ANR_SOUNDTRACK_URL && secrets.ANR_SOUNDTRACK_AUTH || '' }}
         run: python render.py

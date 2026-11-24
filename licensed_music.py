@@ -1,4 +1,4 @@
-"""Carrega a trilha licenciada de armazenamento privado do portal."""
+"""Carrega a trilha licenciada da hospedagem do portal."""
 import base64
 import os
 import subprocess
@@ -7,7 +7,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-MAX_BYTES = 4 * 1024 * 1024
+MAX_BYTES = 8 * 1024 * 1024
 HOSTS = ('terradeherois.com.br', 'www.terradeherois.com.br')
 
 
@@ -18,18 +18,23 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def _request(url, auth):
     parsed = urllib.parse.urlsplit(url)
+    path = urllib.parse.unquote(parsed.path)
     if (parsed.scheme != 'https' or parsed.hostname not in HOSTS
             or parsed.port not in (None, 443) or parsed.username
             or parsed.password or parsed.fragment or parsed.query
-            or not parsed.path.lower().endswith('.mp3')):
-        raise ValueError('URL privada da trilha inválida.')
-    if not auth or ':' not in auth or not auth.split(':', 1)[0]:
+            or '..' in path.split('/') or '\\' in path
+            or not path.lower().endswith(('.mp3', '.m4a'))):
+        raise ValueError('URL da trilha inválida.')
+    headers = {'User-Agent': 'Terra-Reels-Renderer/1.4'}
+    if path.startswith('/wp-content/uploads/') and not auth:
+        # Biblioteca de mídia do próprio portal, sem enviar credenciais.
+        pass
+    elif auth and ':' in auth and auth.split(':', 1)[0]:
+        token = base64.b64encode(auth.encode('utf-8')).decode('ascii')
+        headers['Authorization'] = 'Basic ' + token
+    else:
         raise ValueError('Autenticação da trilha não configurada.')
-    token = base64.b64encode(auth.encode('utf-8')).decode('ascii')
-    return urllib.request.Request(url, headers={
-        'Authorization': 'Basic ' + token,
-        'User-Agent': 'Terra-Reels-Renderer/1.3',
-    })
+    return urllib.request.Request(url, headers=headers)
 
 
 def prepare_music(seconds, filename):
@@ -43,7 +48,7 @@ def prepare_music(seconds, filename):
     fade_start = max(0.0, duration-1.2)
     opener = urllib.request.build_opener(_NoRedirect)
     with tempfile.TemporaryDirectory(prefix='anr-music-') as tmp:
-        source = Path(tmp)/'source.mp3'
+        source = Path(tmp)/('source' + Path(urllib.parse.urlsplit(url).path).suffix.lower())
         target = Path(tmp)/'music.wav'
         with opener.open(req, timeout=15) as response:
             data = response.read(MAX_BYTES+1)
