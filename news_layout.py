@@ -16,10 +16,13 @@ def gradient(w,h,a,b):
 
 def bold_font(size, italic=False):
     filename='DejaVuSansCondensed-BoldOblique.ttf' if italic else 'DejaVuSansCondensed-Bold.ttf'
-    try:
-        return ImageFont.truetype('/usr/share/fonts/truetype/dejavu/'+filename,int(size))
-    except OSError:
-        return ImageFont.truetype('DejaVuSans-Bold.ttf',int(size))
+    for candidate in ('/usr/share/fonts/truetype/dejavu/'+filename,
+                      filename, 'DejaVuSans-Bold.ttf'):
+        try:
+            return ImageFont.truetype(candidate, int(size))
+        except OSError:
+            pass
+    return ImageFont.load_default(size=int(size))
 
 def draw_logo(bg,logo):
     logo=logo.convert('RGBA')
