@@ -4,6 +4,7 @@
 Obtém metadados autenticados do WordPress, gera MP4 vertical H.264/AAC
 (com áudio silencioso) e devolve o vídeo via HTTPS. Sem credenciais no código.
 """
+import hashlib
 import io
 import json
 import os
@@ -143,7 +144,9 @@ def make_frame(meta, path='frame.png', photo=None, logo=None):
     """Usa moldura oficial do WordPress; mantém renderizador antigo como fallback."""
     from approved_skin import make_official_frame
     if make_official_frame(meta, path, photo, image_from_url, safe_text):
+        print('Diagnóstico visual: moldura oficial; resumo até 4 linhas; sem balão de endereço adicional.', flush=True)
         return
+    print('Diagnóstico visual: layout de fallback; manifesto sem template_url.', flush=True)
     from news_layout import make_news_frame
     return make_news_frame(meta, path, photo, logo, image_from_url,
                            safe_text, font, wrapped_lines, write_lines)
@@ -203,8 +206,11 @@ def main():
         make_frame(metadata)
         size = render_mp4(seconds=metadata.get('seconds', 28))
     print('Vídeo MP4 criado (bytes):', size)
+    print('Diagnóstico quadro SHA256:', hashlib.sha256(Path('frame.png').read_bytes()).hexdigest())
     with open('reel.mp4', 'rb') as f:
-        response = json.loads(fetch(endpoint + '/upload', token=token, data=f.read(),
+        payload = f.read()
+        print('Diagnóstico MP4 SHA256:', hashlib.sha256(payload).hexdigest())
+        response = json.loads(fetch(endpoint + '/upload', token=token, data=payload,
                                     content_type='video/mp4', max_bytes=40_000))
     if response.get('ok') is not True:
         raise ValueError('O WordPress não confirmou o recebimento do MP4.')
