@@ -6,6 +6,7 @@ fundo de tipografia e o rodapé, mas não contém foto ou texto jornalístico.
 Somente imagens/URLs do portal são aceitas pelo render.py.
 """
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+from photo_quality import prepare_photo
 
 W, H = 1080, 1920
 PHOTO_TOP, PHOTO_BOTTOM = 410, 1147
@@ -51,8 +52,7 @@ def make_official_frame(meta, path, photo, image_from_url, safe_text):
         raise ValueError('A moldura oficial contém uma foto onde deveria ser transparente.')
     if photo is None:
         photo = image_from_url(meta['image_url'])
-    photo = ImageOps.fit(photo.convert('RGBA'), (W, PHOTO_BOTTOM-PHOTO_TOP),
-                         method=Image.Resampling.LANCZOS, centering=(0.5,0.45))
+    photo = prepare_photo(photo, (W, PHOTO_BOTTOM-PHOTO_TOP))
     base = Image.new('RGBA', (W,H), '#061638')
     base.alpha_composite(photo, (0,PHOTO_TOP))
     base.alpha_composite(skin)
