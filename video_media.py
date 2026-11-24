@@ -106,10 +106,18 @@ def make_overlay(frame='frame.png', target='overlay.png'):
                      fill=(1,12,42,a))
     dr.polygon([(20,1077),(513,1077),(487,1159),(5,1159)], fill='#061435')
     dr.polygon([(25,1072),(509,1072),(483,1148),(3,1148)], fill='#ffd91e')
-    try:
-        ft = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-BoldOblique.ttf', 47)
-    except OSError:
-        ft = ImageFont.truetype('DejaVuSans-Bold.ttf', 47)
+    ft = None
+    for candidate in (
+        '/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-BoldOblique.ttf',
+        'DejaVuSansCondensed-BoldOblique.ttf', 'DejaVuSans-Bold.ttf'
+    ):
+        try:
+            ft = ImageFont.truetype(candidate, 47)
+            break
+        except OSError:
+            pass
+    if ft is None:
+        ft = ImageFont.load_default(size=47)
     dr.text((44,1090), 'ÚLTIMAS NOTÍCIAS', font=ft, fill='#041b47', stroke_width=1)
     for x in (522,564,606):
         dr.polygon([(x,1088),(x+24,1088),(x-4,1140),(x-28,1140)], fill='#04e6f5')
