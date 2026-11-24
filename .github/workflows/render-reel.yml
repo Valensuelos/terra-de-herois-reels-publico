@@ -37,4 +37,5 @@ jobs:
           ANR_SITE_URL: ${{ secrets.ANR_SITE_URL }}
           ANR_SHARED_SECRET: ${{ secrets.ANR_SHARED_SECRET }}
           ANR_JOB_ID: ${{ inputs.job_id }}
+          ANR_MUSIC_ENABLED: ${{ vars.ANR_MUSIC_ENABLED || 'true' }}
         run: /usr/bin/python3 render.py
