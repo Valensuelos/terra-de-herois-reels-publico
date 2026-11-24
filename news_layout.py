@@ -1,6 +1,7 @@
 """Layout editorial premium do Terra de Heróis para Reels 9:16."""
 import urllib.error
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
+from photo_quality import prepare_photo
 
 WIDTH, HEIGHT = 1080, 1920
 
@@ -64,9 +65,7 @@ def make_news_frame(meta,path,photo,logo,image_from_url,safe_text,
         draw_logo(bg,logo)
     else:
         lettered(bg,(205,135),'TERRA DE HERÓIS',bold_font(70),'#ffde20')
-    photo=ImageOps.fit(photo.convert('RGB'),(WIDTH,810),
-                       method=Image.Resampling.LANCZOS,
-                       centering=(0.5,0.45)).convert('RGBA')
+    photo=prepare_photo(photo, (WIDTH,810))
     bg.alpha_composite(photo,(0,403))
     d=ImageDraw.Draw(bg)
     d.polygon([(0,399),(0,445),(160,420),(510,439),(820,433),
