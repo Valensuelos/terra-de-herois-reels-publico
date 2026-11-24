@@ -126,3 +126,28 @@ logo, a moldura e as cores originais do Terra de Heróis:
 As alterações são aplicadas a novas renderizações. Vídeos existentes não são
 modificados retroativamente. Mantenha a publicação automática desligada
 até aprovar o resultado.
+
+
+## Correção de timeout do GitHub Actions (24/11/2026)
+
+As execuções **#9682** e **#9675** ficaram paradas na instalação de
+`ffmpeg`/`python3-pil` via `apt-get` e foram canceladas pelo limite de
+15 minutos, antes da renderização. A execução **#9681** concluiu em
+aproximadamente 36 segundos; o erro era intermitente na preparação.
+
+O workflow agora usa `actions/checkout@v6`, `actions/setup-python@v6`
+e instala por wheels pré-compilados `Pillow==12.0.0` e
+`imageio-ffmpeg==0.6.0`. Não executa `apt-get update` e limita
+a etapa de instalação a quatro minutos. O renderizador verifica
+`libx264` e `unsharp` antes de renderizar. Em vídeo MP4, se não
+houver `ffprobe`, os metadados são extraídos da saída do FFmpeg.
+
+**Testar:** no WordPress, faça uma nova tentativa de processamento de
+um único Reels com publicação no Instagram desativada. Confira
+que as etapas Preparar dependências, Verificar dependências e Gerar MP4
+terminaram verdes. Uma nova tentativa de um job antigo pelo botão
+"Re-run jobs" pode usar o commit antigo, por isso prefira acionar
+`Processar agora` pelo WordPress após este ajuste.
+
+Os arquivos MP4 antigos não são alterados, e não é necessário
+reinstalar o plugin WordPress para corrigir essa etapa do GitHub.
