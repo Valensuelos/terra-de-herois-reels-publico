@@ -110,8 +110,6 @@ def make_official_frame(meta, path, photo, image_from_url, safe_text):
     dr.text((282, 1677), 'terradeherois.com.br',
             font=font(35, True), fill='#ffe329',
             stroke_fill='#071533', stroke_width=1)
-    # Reforço na borda do CTA oficial, sem alterar arte ou logotipo originais.
-    dr.rounded_rectangle((27, 1787, 1052, 1874), radius=41,
-                         outline='#36f1f8', width=3)
+    # O CTA original da moldura permanece intacto, sem contorno duplicado.
     base.convert('RGB').save(path,optimize=True)
     return True
