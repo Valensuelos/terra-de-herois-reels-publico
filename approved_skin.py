@@ -64,35 +64,54 @@ def make_official_frame(meta, path, photo, image_from_url, safe_text):
     summary = safe_text(meta.get('summary'), 850)
     if not title or not summary:
         raise ValueError('Título e resumo são obrigatórios na moldura oficial.')
-    # Prioridade: título grande em até quatro linhas, como arte aprovada.
-    ft = font(82)
-    lines = []
-    height = 88
-    for size in range(108, 43, -2):
-        candidate_font=font(size)
-        candidate = _wrap(dr,title,candidate_font,953,4)
-        line_height = round(size*1.11)
-        if len(candidate)*line_height <= 285:
-            ft, lines, height = candidate_font, candidate, line_height
+    # Manchete: maximizar tamanho sem perder a leitura nem ultrapassar o painel.
+    # A arte oficial disponibiliza o espaço vertical 1155-1495.
+    title_font = font(50)
+    title_rows = []
+    title_step = 58
+    for size in range(124, 47, -2):
+        candidate_font = font(size)
+        candidate_rows = _wrap(dr, title, candidate_font, 957, 4)
+        step = round(size * 1.07)
+        if len(candidate_rows) * step <= 302:
+            title_font, title_rows, title_step = candidate_font, candidate_rows, step
             break
-    if not lines:
-        lines = _wrap(dr,title,ft,953,4)
-    top = 1193 + max(0, (280-height*len(lines))//2)
-    for i,line in enumerate(lines):
-        box=dr.textbbox((0,0),line,font=ft)
-        x=max(68,(W-(box[2]-box[0]))//2)
-        color='#ffe11a' if i==len(lines)-1 and len(lines)>1 else '#ffffff'
-        dr.text((x+4, top+i*height+7),line,font=ft,fill='#000b25',
-                stroke_width=5,stroke_fill='#000b25')
-        dr.text((x,top+i*height),line,font=ft,fill=color,
-                stroke_width=2,stroke_fill='#16335f')
+    if not title_rows:
+        title_rows = _wrap(dr, title, title_font, 957, 4)
+    title_top = 1166 + max(0, (310-title_step * len(title_rows))//2)
+    for i, line in enumerate(title_rows):
+        bounds = dr.textbbox((0, 0), line, font=title_font)
+        x = max(55, (W-(bounds[2]-bounds[0]))//2)
+        y = title_top + i*title_step
+        color = '#ffe21c' if i == len(title_rows)-1 and len(title_rows)>1 else '#ffffff'
+        dr.text((x+5, y+8), line, font=title_font, fill='#00091b',
+                stroke_width=6, stroke_fill='#00091b')
+        dr.text((x, y), line, font=title_font, fill=color,
+                stroke_width=2, stroke_fill='#133263')
 
-    sf=font(40,False)
-    rows = _wrap(dr,summary,sf,790,4)
-    if len(rows)>4:
-        rows=rows[:4]
-    for i, line in enumerate(rows):
-        dr.text((268,1520+i*47), line, font=sf,fill='#ffffff',
-                stroke_fill='#071833',stroke_width=1)
+    # Resumo: melhor leitura em tela pequena, até três linhas com respiro.
+    # Prefere preservar o texto inteiro quando cabe; caso contrário usa reticências.
+    summary_font = font(45, False)
+    for size in range(52, 43, -2):
+        candidate_font = font(size, False)
+        if len(_wrap(dr, summary, candidate_font, 792, 99)) <= 3:
+            summary_font = candidate_font
+            break
+    summary_rows = _wrap(dr, summary, summary_font, 792, 3)
+    summary_y = 1499
+    for i, line in enumerate(summary_rows):
+        dr.text((268, summary_y + i*55), line, font=summary_font,
+                fill='#ffffff', stroke_fill='#061636', stroke_width=1)
+
+    # Domínio complementar acima do CTA inferior; continua visível mais cedo
+    # quando os controles nativos do player passam sobre o rodapé.
+    dr.rounded_rectangle((265, 1671, 657, 1718), radius=15,
+                         fill='#042456', outline='#14cbea', width=2)
+    dr.text((282, 1677), 'terradeherois.com.br',
+            font=font(35, True), fill='#ffe329',
+            stroke_fill='#071533', stroke_width=1)
+    # Reforço na borda do CTA oficial, sem alterar arte ou logotipo originais.
+    dr.rounded_rectangle((27, 1787, 1052, 1874), radius=41,
+                         outline='#36f1f8', width=3)
     base.convert('RGB').save(path,optimize=True)
     return True
