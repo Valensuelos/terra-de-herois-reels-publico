@@ -58,8 +58,8 @@ jobs:
         run: |
           set -euo pipefail
           python -c "from PIL import Image; import imageio_ffmpeg; print('Pillow e FFmpeg disponíveis')"
-          ffmpeg -hide_banner -encoders | grep -q 'libx264'
-          ffmpeg -hide_banner -filters | grep -q 'unsharp'
+          ffmpeg -hide_banner -encoders | grep 'libx264' >/dev/null
+          ffmpeg -hide_banner -filters | grep 'unsharp' >/dev/null
           python -m unittest discover -s tests -v
 
       - name: Gerar e enviar MP4
