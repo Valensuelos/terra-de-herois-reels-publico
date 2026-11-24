@@ -1,5 +1,7 @@
 """Renderiza vídeo MP4 próprio do portal, priorizando sempre seu áudio original."""
 import json
+import re
+import shutil
 import subprocess
 import urllib.parse
 import urllib.request
@@ -44,18 +46,38 @@ def download_video(url, dest='source.mp4'):
         raise ValueError('Arquivo de vídeo não foi recebido corretamente.')
     return dest
 
+def _probe_ffmpeg_output(output):
+    """Metadados essenciais a partir da saída do FFmpeg (sem ffprobe)."""
+    has_video = bool(re.search(r'^\\s*Stream #\\S+.*Video:', output, re.MULTILINE))
+    has_audio = bool(re.search(r'^\\s*Stream #\\S+.*Audio:', output, re.MULTILINE))
+    duration_match = re.search(r'Duration:\\s*(\\d+):(\\d+):(\\d+(?:\\.\\d+)?)', output)
+    duration = 0.0
+    if duration_match:
+        hours, minutes, seconds = duration_match.groups()
+        duration = int(hours) * 3600 + int(minutes) * 60 + float(seconds)
+    return duration, has_video, has_audio
+
+
 def probe_video(path):
-    p = subprocess.run(['ffprobe', '-v', 'error', '-show_entries',
-                        'format=duration:stream=codec_type', '-of', 'json', path],
-                       text=True, capture_output=True, timeout=30, check=True)
-    data = json.loads(p.stdout)
-    streams = data.get('streams', [])
-    has_video = any(s.get('codec_type') == 'video' for s in streams)
-    has_audio = any(s.get('codec_type') == 'audio' for s in streams)
-    duration = float(data.get('format', {}).get('duration', 0))
-    if not has_video or duration < 3.0:
-        raise ValueError('Vídeo inválido ou com duração inferior a 3 segundos.')
+    """Utiliza ffprobe quando disponível; caso contrário lê o cabeçalho com ffmpeg."""
+    if shutil.which('ffprobe'):
+        result = subprocess.run(
+            ['ffprobe', '-v', 'error', '-show_entries',
+             'format=duration:stream=codec_type', '-of', 'json', path],
+            text=True, capture_output=True, timeout=30, check=True)
+        data = json.loads(result.stdout)
+        streams = data.get('streams', [])
+        has_video = any(s.get('codec_type') == 'video' for s in streams)
+        has_audio = any(s.get('codec_type') == 'audio' for s in streams)
+        duration = float(data.get('format', {}).get('duration', 0))
+    else:
+        result = subprocess.run(['ffmpeg', '-hide_banner', '-i', path],
+                                text=True, capture_output=True, timeout=30)
+        duration, has_video, has_audio = _probe_ffmpeg_output(result.stderr)
+    if not has_video or not (3 <= duration <= 3600):
+        raise ValueError('Vídeo inválido, sem duração válida ou maior que uma hora.')
     return duration, has_audio
+
 
 def extract_photo(source, target='source-poster.jpg'):
     subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
