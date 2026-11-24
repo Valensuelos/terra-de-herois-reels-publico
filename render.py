@@ -135,7 +135,10 @@ def write_lines(draw, text, y, fnt, count, fill, max_width=940, line_h=None):
 
 
 def make_frame(meta, path='frame.png', photo=None, logo=None):
-    """Novo layout editorial sem alterar a interface da API WordPress."""
+    """Usa moldura oficial do WordPress; mantém renderizador antigo como fallback."""
+    from approved_skin import make_official_frame
+    if make_official_frame(meta, path, photo, image_from_url, safe_text):
+        return
     from news_layout import make_news_frame
     return make_news_frame(meta, path, photo, logo, image_from_url,
                            safe_text, font, wrapped_lines, write_lines)
