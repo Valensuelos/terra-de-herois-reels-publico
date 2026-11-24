@@ -135,50 +135,26 @@ def write_lines(draw, text, y, fnt, count, fill, max_width=940, line_h=None):
 
 
 def make_frame(meta, path='frame.png', photo=None, logo=None):
-    if not isinstance(meta, dict):
-        raise ValueError('Metadados de Reels inválidos.')
-    title = safe_text(meta.get('title'), 250)
-    summary = safe_text(meta.get('summary'), 800)
-    if not title or not summary:
-        raise ValueError('Título ou resumo ausente.')
-    if photo is None:
-        photo = image_from_url(meta['image_url'])
-    if logo is None and meta.get('logo_url'):
-        try:
-            logo = image_from_url(meta['logo_url'])
-        except (ValueError, OSError, urllib.error.URLError):
-            print('Logo não pôde ser carregada; será usado o nome do portal.', file=sys.stderr)
-    bg = ImageOps.fit(photo.convert('RGB'), (WIDTH, HEIGHT), method=Image.Resampling.LANCZOS)
-    bg = bg.filter(ImageFilter.GaussianBlur(24)).convert('RGBA')
-    bg.alpha_composite(Image.new('RGBA', (WIDTH, HEIGHT), (4, 13, 32, 165)))
-    d = ImageDraw.Draw(bg)
-    d.rectangle((0, 0, WIDTH, 420), fill=(7, 26, 63, 244))
-    bg.alpha_composite(ImageOps.fit(photo, (WIDTH, 660), method=Image.Resampling.LANCZOS), (0, 420))
-    d = ImageDraw.Draw(bg)
-    d.rectangle((0, 1080, WIDTH, HEIGHT), fill=(6, 26, 61, 248))
-    d.rectangle((0, 1090, WIDTH, 1102), fill=(255, 213, 42))
-    d.rectangle((0, 1670, WIDTH, 1678), fill=(255, 213, 42))
-    if logo is not None:
-        logo.thumbnail((760, 220), Image.Resampling.LANCZOS)
-        bg.alpha_composite(logo, ((WIDTH - logo.width) // 2, 35))
-    else:
-        write_lines(d, 'TERRA DE HERÓIS', 80, font(74, True), 2, '#ffd52a')
-    d = ImageDraw.Draw(bg)
-    write_lines(d, 'ÚLTIMAS NOTÍCIAS • ANTÔNIO JOÃO - MS', 320, font(33, True), 2, 'white')
-    write_lines(d, title, 1140, font(55, True), 4, 'white', 950, 76)
-    write_lines(d, summary, 1460, font(31), 4, 'white', 940, 47)
-    write_lines(d, 'terradeherois.com.br • LEIA A MATÉRIA COMPLETA', 1770, font(29, True), 2, '#ffd52a')
-    bg.convert('RGB').save(path, optimize=True)
-
+    """Novo layout editorial sem alterar a interface da API WordPress."""
+    from news_layout import make_news_frame
+    return make_news_frame(meta, path, photo, logo, image_from_url,
+                           safe_text, font, wrapped_lines, write_lines)
 
 def render_mp4(frame='frame.png', path='reel.mp4', seconds=28):
     duration = max(20, min(45, int(seconds)))
+    music = os.environ.get('ANR_MUSIC_ENABLED', 'true').strip().lower() not in (
+        'false', '0', 'off', 'no')
+    if music:
+        from soundtrack import make_music
+        audio_input = ['-i', make_music(duration)]
+    else:
+        audio_input = ['-f', 'lavfi', '-i',
+                       'anullsrc=channel_layout=stereo:sample_rate=44100']
     args = ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y',
-            '-loop', '1', '-framerate', '20', '-i', frame,
-            '-f', 'lavfi', '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100',
+            '-loop', '1', '-framerate', '20', '-i', frame] + audio_input + [
             '-t', str(duration), '-c:v', 'libx264', '-preset', 'veryfast',
             '-crf', '26', '-pix_fmt', 'yuv420p', '-r', '20', '-c:a', 'aac',
-            '-b:a', '96k', '-ar', '44100', '-ac', '2',
+            '-b:a', '112k', '-ar', '44100', '-ac', '2',
             '-movflags', '+faststart', '-shortest', path]
     subprocess.run(args, check=True, timeout=600)
     size = Path(path).stat().st_size
