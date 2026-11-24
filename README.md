@@ -103,3 +103,26 @@ a logo antiga previamente configurada.
 **Teste:** manter publicação automática desativada; gerar um novo Reels após
 instalar o plugin 1.2.3; conferir o MP4 no painel antes de publicar.
 Jobs anteriores com status PRONTO não mudam retroativamente.
+
+
+## Ajustes de definição e cor (24/11/2026)
+
+O renderizador aplica melhorias **somente na mídia da matéria**, preservando a
+logo, a moldura e as cores originais do Terra de Heróis:
+
+- Fotografias: `photo_quality.py` aplica contraste 1,08, cor 1,11, luminosidade
+  1,035 e máscara de nitidez moderada após o enquadramento 1080px.
+  Imagens pequenas recebem nitidez mais leve para evitar realçar artefatos.
+- Vídeos: `video_media.py` usa filtros FFmpeg `eq` e `unsharp` somente na
+  faixa da filmagem, mantendo a narração original quando existente.
+- Codificação: MP4s de fotografia passaram a H.264 CRF 20/preset fast,
+  e MP4s com vídeo original a H.264 CRF 21/preset fast. Áudio AAC e o limite de
+  45 MB de upload ao WordPress permanecem.
+- Testes: `python3 -m unittest discover -s tests -v`; além deles, convém gerar
+  um Reels real para conferir a qualidade e tamanho de arquivo.
+- Fotos originalmente desfocadas/comprimidas não recuperam detalhes perdidos.
+  Evite realce exagerado em fotografias já muito saturadas.
+
+As alterações são aplicadas a novas renderizações. Vídeos existentes não são
+modificados retroativamente. Mantenha a publicação automática desligada
+até aprovar o resultado.
