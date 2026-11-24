@@ -43,6 +43,23 @@ def _wrap(draw, text, ft, maxw, maxlines):
         lines[-1] = tail.rstrip() + '…'
     return lines
 
+def _draw_site_address(draw, rect):
+    """Centraliza os pixels reais do texto, incluindo contorno, com margens."""
+    text = 'terradeherois.com.br'
+    left, top, right, bottom = rect
+    for size in range(46, 11, -1):
+        ft = font(size, True)
+        x0, y0, x1, y1 = draw.textbbox((0, 0), text, font=ft, stroke_width=1)
+        width, height = x1-x0, y1-y0
+        if width <= right-left-32 and height <= bottom-top-12:
+            x = left + (right-left-width)//2 - x0
+            y = top + (bottom-top-height)//2 - y0
+            draw.text((x, y), text, font=ft, fill='#ffe329',
+                      stroke_fill='#071533', stroke_width=1)
+            return
+    raise ValueError('Endereço não cabe no balão da moldura.')
+
+
 def make_official_frame(meta, path, photo, image_from_url, safe_text):
     """Retorna False se o manifesto não fornece a moldura oficial."""
     template_url = meta.get('template_url', '') if isinstance(meta, dict) else ''
@@ -111,9 +128,7 @@ def make_official_frame(meta, path, photo, image_from_url, safe_text):
     # Endereço maior e afastado do resumo, sem disputar espaço com o CTA.
     dr.rounded_rectangle((262, 1677, 815, 1724), radius=13,
                          fill='#052451', outline='#0fcce8', width=2)
-    dr.text((278, 1682), 'terradeherois.com.br',
-            font=font(46, True), fill='#ffe329',
-            stroke_fill='#071533', stroke_width=1)
+    _draw_site_address(dr, (262, 1677, 815, 1724))
     # O CTA original da moldura permanece intacto, sem contorno duplicado.
     base.convert('RGB').save(path,optimize=True)
     return True
