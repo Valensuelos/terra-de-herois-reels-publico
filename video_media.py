@@ -48,9 +48,9 @@ def download_video(url, dest='source.mp4'):
 
 def _probe_ffmpeg_output(output):
     """Metadados essenciais a partir da saída do FFmpeg (sem ffprobe)."""
-    has_video = bool(re.search(r'^\\s*Stream #\\S+.*Video:', output, re.MULTILINE))
-    has_audio = bool(re.search(r'^\\s*Stream #\\S+.*Audio:', output, re.MULTILINE))
-    duration_match = re.search(r'Duration:\\s*(\\d+):(\\d+):(\\d+(?:\\.\\d+)?)', output)
+    has_video = bool(re.search(r'^\s*Stream #\S+.*Video:', output, re.MULTILINE))
+    has_audio = bool(re.search(r'^\s*Stream #\S+.*Audio:', output, re.MULTILINE))
+    duration_match = re.search(r'Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)', output)
     duration = 0.0
     if duration_match:
         hours, minutes, seconds = duration_match.groups()
