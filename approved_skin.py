@@ -71,17 +71,17 @@ def make_official_frame(meta, path, photo, image_from_url, safe_text):
     title_step = 58
     for size in range(124, 47, -2):
         candidate_font = font(size)
-        candidate_rows = _wrap(dr, title, candidate_font, 957, 4)
+        candidate_rows = _wrap(dr, title, candidate_font, 902, 4)
         step = round(size * 1.07)
         if len(candidate_rows) * step <= 302:
             title_font, title_rows, title_step = candidate_font, candidate_rows, step
             break
     if not title_rows:
-        title_rows = _wrap(dr, title, title_font, 957, 4)
+        title_rows = _wrap(dr, title, title_font, 902, 4)
     title_top = 1166 + max(0, (310-title_step * len(title_rows))//2)
     for i, line in enumerate(title_rows):
         bounds = dr.textbbox((0, 0), line, font=title_font)
-        x = max(55, (W-(bounds[2]-bounds[0]))//2)
+        x = max(85, (W-(bounds[2]-bounds[0]))//2)
         y = title_top + i*title_step
         color = '#ffe21c' if i == len(title_rows)-1 and len(title_rows)>1 else '#ffffff'
         dr.text((x+5, y+8), line, font=title_font, fill='#00091b',
@@ -92,23 +92,24 @@ def make_official_frame(meta, path, photo, image_from_url, safe_text):
     # Resumo: melhor leitura em tela pequena, até três linhas com respiro.
     # Prefere preservar o texto inteiro quando cabe; caso contrário usa reticências.
     summary_font = font(45, False)
-    for size in range(52, 43, -2):
+    for size in range(56, 47, -2):
         candidate_font = font(size, False)
         if len(_wrap(dr, summary, candidate_font, 792, 99)) <= 3:
             summary_font = candidate_font
             break
-    summary_rows = _wrap(dr, summary, summary_font, 792, 3)
-    summary_y = 1499
+    summary_rows = _wrap(dr, summary, summary_font, 798, 3)
+    # Painel de 1497 a 1731: texto legível e assinatura acima dos controles.
+    summary_y = 1507
+    line_spacing = 52
     for i, line in enumerate(summary_rows):
-        dr.text((268, summary_y + i*55), line, font=summary_font,
+        dr.text((262, summary_y + i*line_spacing), line, font=summary_font,
                 fill='#ffffff', stroke_fill='#061636', stroke_width=1)
 
-    # Domínio complementar acima do CTA inferior; continua visível mais cedo
-    # quando os controles nativos do player passam sobre o rodapé.
-    dr.rounded_rectangle((265, 1671, 716, 1718), radius=15,
-                         fill='#042456', outline='#14cbea', width=2)
-    dr.text((282, 1677), 'terradeherois.com.br',
-            font=font(35, True), fill='#ffe329',
+    # Endereço maior e afastado do resumo, sem disputar espaço com o CTA.
+    dr.rounded_rectangle((262, 1677, 815, 1724), radius=13,
+                         fill='#052451', outline='#0fcce8', width=2)
+    dr.text((278, 1682), 'terradeherois.com.br',
+            font=font(46, True), fill='#ffe329',
             stroke_fill='#071533', stroke_width=1)
     # O CTA original da moldura permanece intacto, sem contorno duplicado.
     base.convert('RGB').save(path,optimize=True)
