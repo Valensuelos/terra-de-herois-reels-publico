@@ -176,8 +176,24 @@ def main():
     metadata = json.loads(fetch(endpoint, token=token, max_bytes=40_000))
     if int(metadata.get('id', 0)) != int(job_id):
         raise ValueError('O ID retornado pelo WordPress é diferente do solicitado.')
-    make_frame(metadata)
-    size = render_mp4(seconds=metadata.get('seconds', 28))
+    video_url = metadata.get('video_url', '')
+    if video_url:
+        from video_media import download_video, extract_photo, render_video
+        download_video(video_url)
+        if metadata.get('image_url'):
+            try:
+                make_frame(metadata)
+            except (ValueError, OSError, urllib.error.URLError):
+                print('Imagem destacada indisponível; extraindo capa do vídeo.')
+                make_frame(metadata, photo=extract_photo('source.mp4'))
+        else:
+            make_frame(metadata, photo=extract_photo('source.mp4'))
+        music = os.environ.get('ANR_MUSIC_ENABLED', 'true').strip().lower() not in ('false', '0', 'off', 'no')
+        size = render_video(source='source.mp4', frame='frame.png', target='reel.mp4',
+                            seconds=metadata.get('seconds', 28), music=music)
+    else:
+        make_frame(metadata)
+        size = render_mp4(seconds=metadata.get('seconds', 28))
     print('Vídeo MP4 criado (bytes):', size)
     with open('reel.mp4', 'rb') as f:
         response = json.loads(fetch(endpoint + '/upload', token=token, data=f.read(),
