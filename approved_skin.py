@@ -105,7 +105,7 @@ def make_official_frame(meta, path, photo, image_from_url, safe_text):
 
     # Domínio complementar acima do CTA inferior; continua visível mais cedo
     # quando os controles nativos do player passam sobre o rodapé.
-    dr.rounded_rectangle((265, 1671, 657, 1718), radius=15,
+    dr.rounded_rectangle((265, 1671, 716, 1718), radius=15,
                          fill='#042456', outline='#14cbea', width=2)
     dr.text((282, 1677), 'terradeherois.com.br',
             font=font(35, True), fill='#ffe329',
